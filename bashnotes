@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+#
+#  ____            _       _   _       _
+# | __ )  __ _ ___| |__   | \ | | ___ | |_ ___  ___
+# |  _ \ / _` / __| '_ \  |  \| |/ _ \| __/ _ \/ __|
+# | |_) | (_| \__ \ | | | | |\  | (_) | ||  __/\__ \
+# |____/ \__,_|___/_| |_| |_| \_|\___/ \__\___||___/
+#                                                 v0.1
+#
+# BashNotes is a simple bash script for managing notes
+#
+# bashnotes help                        : Shows the help menu for BashNotes
+# bashnotes create <note_name>          : Creates a note with the given name and opens it in the default editor (add the --no flag before the filename if you don't want it opened after creation)
+# bashnotes delete <note_name>          : Deletes the note with the given name
+# bashnotes edit <note_name>            : Opens the given note in the default editor
+# bashnotes info <note_name>            : Shows information about the given note
+# bashnotes list <tag>                  : Lists all notes that belong to the given tag (lists all notes if no tag name is given)
+# bashnotes search <search>             : Searches for the given search term in note names
+# bashnotes tag <note_name> <tag_name>  : Assigns the given tag to the given note
+# bashnotes untag <note_name>           : Removes the current tag from the given note
+# bashnotes taglist                     : Lists all tags
+
+BASE_LOCATION=~/.config/BashNotes
+NOTES_LOCATION=${BASE_LOCATION}/notes
+
+DEFAULT_EDITOR=nano
+DEFAULT_EXTENSION=.txt
+
+NOTES=()
+TAGS=()
+
+
+# -- INITIALIZE --
+# create folders
+if ! [[ -d ${BASE_LOCATION} ]]; then
+    mkdir ${BASE_LOCATION}
+    mkdir ${NOTES_LOCATION}
+fi
+
+# fill the tags array
+for dir in ${NOTES_LOCATION}/*/; do
+    dir=${dir%*/}   # remove the trailing "/"
+    pure_tag_name=${dir/"$NOTES_LOCATION/"/""}    # remove the base dir path
+    TAGS+=("$pure_tag_name")
+done
+
+# fill the notes array
+for dir in ${NOTES_LOCATION}/*/; do
+    for note in $dir*${DEFAULT_EXTENSION}; do
+        pure_note_name=${note/"$NOTES_LOCATION/"/""}    # remove the base dir path
+        NOTES+=("$pure_note_name")
+    done
+done
+
+
+# -- UTIL FUNCTIONS --
+prompt() {
+    while true; do
+        read -p "$1 [y/n]: " yn
+        case $yn in
+            [Yy]*) echo "$2" ; return 0  ;;
+            [Nn]*) echo "$3" ; return  1 ;;
+        esac
+    done
+}
+
+get_note_path() {
+    for note in ${NOTES[@]}; do
+        IFS='/' read -ra arr <<< "$note"
+        if [ ${arr[1]} == $1${DEFAULT_EXTENSION} ]; then
+            echo $note
+        fi
+    done
+}
+
+
+# -- MAIN FUNCTIONS --
+help() {
+    echo \
+    "BashNotes v0.1
+BashNotes is a simple bash script for managing notes
+
+bnotes help                        : Shows the help menu for BashNotes
+bnotes create <note_name>          : Creates a note with the given name and opens it in the default editor
+bnotes delete <note_name>          : Deletes the note with the given name
+bnotes edit <note_name>            : Opens the note with the given name in the default editor
+bnotes list <tag>                  : Lists all notes that belong to the given tag (lists all notes if no tag name is given)
+bnotes search <search>             : Searches for the given search term in note names
+bnotes tag <note_name> <tag_name>  : Assigns the given tag to the given note
+bnotes untag <note_name>           : Removes the current tag from the given note
+bnotes taglist                     : Lists all tags"
+}
+
+create() {
+    # $1 = note name
+    # if $1 is the --no flag, then $2 is the note name
+    if [ "$1" == "--no" ]; then
+        touch ${NOTES_LOCATION}/$2${DEFAULT_EXTENSION}
+    else
+        touch ${NOTES_LOCATION}/$1${DEFAULT_EXTENSION}
+        nano ${NOTES_LOCATION}/$1${DEFAULT_EXTENSION}
+    fi
+}
+
+delete() {
+    if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
+        prompt "Are you sure you want to delete this note?" "Note deleted: $1${DEFAULT_EXTENSION} succesfully deleted" "" && rm ${NOTES_LOCATION}/$(get_note_path $1)
+    else
+        echo "Unable to delete: The given note doesn't exist"
+    fi
+}
+
+edit() {
+    if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
+        ${DEFAULT_EDITOR} ${NOTES_LOCATION}/$(get_note_path $1)
+    else
+        echo "Unable to open: The given note doesn't exist"
+    fi
+}
+
+info() {
+    if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
+        echo "Name: $1"
+    else
+        echo "Unable to display info: The given note doesn't exist"
+    fi
+}
+
+list() {
+    for dir in ${NOTES_LOCATION}/*/; do
+        pure_dir_name=${dir/"$NOTES_LOCATION/"/""}
+        echo $pure_dir_name
+        for note in $dir*${DEFAULT_EXTENSION}; do
+            pure_note_name=${note/"$dir"/""}    # remove the base dir path
+            echo "  $pure_note_name"
+        done
+    done
+}
+
+search() {
+    echo
+}
+
+tag() {
+    if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
+        if [[ "${TAGS[*]}" == *"$2"* ]]; then
+            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/$2/
+        else
+            mkdir ${NOTES_LOCATION}/$2
+            TAGS+=("$2")
+            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/$2/
+        fi
+    else
+        echo "Unable to tag: The given note doesn't exist"
+    fi
+}
+
+untag() {
+    mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/
+}
+
+
+case "$1" in
+    h | help)
+        help
+        ;;
+    c | create)
+        create $2 $3
+        ;;
+    d | delete)
+        delete $2
+        ;;
+    e | edit)
+        edit $2
+        ;;
+    i | info)
+        info $2
+        ;;
+    l | list)
+        list
+        ;;
+    s | search)
+        search $2
+        ;;
+    t | tag)
+        tag $2 $3
+        ;;
+    u | untag)
+        untag $2
+        ;;
+    *)
+        echo "BashNotes: Option not found"
+        ;;
+esac
