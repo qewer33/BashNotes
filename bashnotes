@@ -38,6 +38,7 @@ if ! [[ -d ${BASE_LOCATION} ]]; then
 fi
 
 # fill the tags array
+shopt -s nullglob
 for dir in ${NOTES_LOCATION}/*/; do
     dir=${dir%*/}   # remove the trailing "/"
     pure_tag_name=${dir/"$NOTES_LOCATION/"/""}    # remove the base dir path
@@ -45,12 +46,17 @@ for dir in ${NOTES_LOCATION}/*/; do
 done
 
 # fill the notes array
+for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
+    pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
+    NOTES+=("$pure_filename1")
+done
 for dir in ${NOTES_LOCATION}/*/; do
-    for note in $dir*${DEFAULT_EXTENSION}; do
-        pure_note_name=${note/"$NOTES_LOCATION/"/""}    # remove the base dir path
-        NOTES+=("$pure_note_name")
+    for file in $dir*${DEFAULT_EXTENSION}; do
+        pure_filename2=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
+        NOTES+=("$pure_filename2")
     done
 done
+shopt -u nullglob
 
 
 # -- UTIL FUNCTIONS --
@@ -66,9 +72,15 @@ prompt() {
 
 get_note_path() {
     for note in ${NOTES[@]}; do
-        IFS='/' read -ra arr <<< "$note"
-        if [ ${arr[1]} == $1${DEFAULT_EXTENSION} ]; then
-            echo $note
+            if [[ $note == */* ]]; then
+            IFS='/' read -ra arr <<< "$note"
+            if [ ${arr[1]} == $1${DEFAULT_EXTENSION} ]; then
+                echo $note
+            fi
+        else
+            if [ $note == $1${DEFAULT_EXTENSION} ]; then
+                echo $note
+            fi
         fi
     done
 }
@@ -127,14 +139,21 @@ info() {
 }
 
 list() {
+    echo "untagged/"
+    shopt -s nullglob
+    for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
+        local pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
+        echo "  $pure_filename1"
+    done
     for dir in ${NOTES_LOCATION}/*/; do
-        pure_dir_name=${dir/"$NOTES_LOCATION/"/""}
-        echo $pure_dir_name
-        for note in $dir*${DEFAULT_EXTENSION}; do
-            pure_note_name=${note/"$dir"/""}    # remove the base dir path
-            echo "  $pure_note_name"
+        local pure_dirname=${dir/"$NOTES_LOCATION/"/""}
+        echo $pure_dirname
+        for file in $dir*${DEFAULT_EXTENSION}; do
+            local pure_filename2=${file/"$dir"/""}    # remove the base dir path
+            echo "  $pure_filename2"
         done
     done
+    shopt -u nullglob
 }
 
 search() {
@@ -156,7 +175,14 @@ tag() {
 }
 
 untag() {
-    mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/
+    if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
+        local note=${NOTES_LOCATION}/$(get_note_path $1)
+        if [ ${note/"$1${DEFAULT_EXTENSION}"/""} != ${NOTES_LOCATION}/ ]; then
+            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/
+        fi
+    else
+        echo "Unable to untag: The given note doesn't exist"
+    fi
 }
 
 

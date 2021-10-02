@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ `whoami` != 'root' ]; then
+if [ "$(whoami)" != "root" ]; then
     echo "Please run as root using sudo"
     exit
 fi
