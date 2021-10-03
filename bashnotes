@@ -22,7 +22,6 @@
 
 BASE_LOCATION=~/.config/BashNotes
 NOTES_LOCATION=${BASE_LOCATION}/notes
-
 DEFAULT_EDITOR=nano
 DEFAULT_EXTENSION=.txt
 
@@ -38,6 +37,12 @@ if ! [[ -d ${BASE_LOCATION} ]]; then
 fi
 
 # fill the tags array
+for dir in ${NOTES_LOCATION}/*/; do
+    dir=${dir%*/}
+    if [ -z "$(ls -A $dir)" ]; then
+        rm -rf $dir
+    fi
+done
 shopt -s nullglob
 for dir in ${NOTES_LOCATION}/*/; do
     dir=${dir%*/}   # remove the trailing "/"
@@ -132,7 +137,7 @@ edit() {
 
 info() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
-        echo "Name: $1"
+        echo "Name: $1.${DEFAULT_EXTENSION}"
     else
         echo "Unable to display info: The given note doesn't exist"
     fi

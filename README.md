@@ -1,6 +1,6 @@
 ![banner](https://raw.githubusercontent.com/qewer33/BashNotes/main/assets/banner.png)
 
-BashNotes is a simple bash script for managing notes. It allows you to manage your notes in tags (categories) all from your terminal. It is currently not yet finished, still needs some improvements and code cleanup.
+BashNotes is a simple bash script for managing notes. It allows you to manage your notes in tags (categories) all from your terminal. It is currently not yet finished, still needs some improvements and code cleanup but it mainly works.
 
 ### Installation
 Download `bashnotes` and `install.sh` (make sure they are on the same directory) and run `install.sh` with root perms:
@@ -20,4 +20,13 @@ bashnotes search <search>             : Searches for the given search term in no
 bashnotes tag <note_name> <tag_name>  : Assigns the given tag to the given note
 bashnotes untag <note_name>           : Removes the current tag from the given note
 bashnotes taglist                     : Lists all tags
+```
+
+### Config Preferences
+There are currently 4 config Preferences that you can change:
+```
+BASE_LOCATION       (default: ~/.config/BashNotes)
+NOTES_LOCATION      (default: ${BASE_LOCATION}/notes)
+DEFAULT_EDITOR      (default: nano)
+DEFAULT_EXTENSION   (default: .txt)
 ```
