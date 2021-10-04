@@ -155,7 +155,26 @@ edit() {
 
 info() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
-        echo "Name: $1.${DEFAULT_EXTENSION}"
+        local file=$(get_note_path $1)
+        echo -e ${GREEN}"Name: $1.${DEFAULT_EXTENSION}"
+        echo -e ${GREEN}"Tag: ${file/"/$1${DEFAULT_EXTENSION}"/""}"
+
+        local stats=$(stat ${NOTES_LOCATION}/$(get_note_path $1))
+        readarray -t stats <<<"$stats"
+
+        local created=${stats[7]/"Birth: "/""}
+        IFS='.' read -ra created <<< "${created}"
+        echo -e ${BLUE}"Created:${created[0]}"
+
+        local modified=${stats[5]/"Modify: "/""}
+        IFS='.' read -ra modified <<< "${modified}"
+        echo -e ${BLUE}"Modified: ${modified[0]}"
+
+        local lines=$(wc -l ${NOTES_LOCATION}/${file})
+        echo -e ${BLUE}"Lines: ${lines/"${NOTES_LOCATION}/$(get_note_path $1)"/""}"
+
+        local words=$(wc -w ${NOTES_LOCATION}/${file})
+        echo -e ${BLUE}"Words: ${words/"${NOTES_LOCATION}/$(get_note_path $1)"/""}"
     else
         log ERROR "Unable to display info" "The given note doesn't exist"
     fi
