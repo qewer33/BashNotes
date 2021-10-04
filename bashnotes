@@ -20,13 +20,23 @@
 # bashnotes untag <note_name>           : Removes the current tag from the given note
 # bashnotes taglist                     : Lists all tags
 
+# - CONFIG PREFERENCES -
 BASE_LOCATION=~/.config/BashNotes
 NOTES_LOCATION=${BASE_LOCATION}/notes
-DEFAULT_EDITOR=nano
-DEFAULT_EXTENSION=.txt
+DEFAULT_EDITOR=micro
+DEFAULT_EXTENSION=.md
+# - END CONFIG PREFERENCES -
 
+# - MAIN GLOBAL VARIABLES -
 NOTES=()
 TAGS=()
+
+# - COLOR VARIABLES -
+RED="\e[0;91m"
+BLUE="\e[0;94m"
+GREEN="\e[0;92m"
+WHITE="\e[0;97m"
+RESETC="\e[0m"
 
 
 # -- INITIALIZE --
@@ -65,11 +75,19 @@ shopt -u nullglob
 
 
 # -- UTIL FUNCTIONS --
+log() {
+    local color
+    if [ "$1" == "INFO" ]; then color=$GREEN
+    elif [ "$1" == "ERROR" ]; then color=$RED
+    fi
+    echo -e ${color}"$2: $3."${RESETC}
+}
+
 prompt() {
     while true; do
         read -p "$1 [y/n]: " yn
         case $yn in
-            [Yy]*) echo "$2" ; return 0  ;;
+            [Yy]*) echo "$2" ; return 0 ;;
             [Nn]*) echo "$3" ; return  1 ;;
         esac
     done
@@ -112,18 +130,18 @@ create() {
     # $1 = note name
     # if $1 is the --no flag, then $2 is the note name
     if [ "$1" == "--no" ]; then
-        touch ${NOTES_LOCATION}/$2${DEFAULT_EXTENSION}
+        touch ${NOTES_LOCATION}/$2${DEFAULT_EXTENSION} && log INFO "Note created" "Succesfully created $1"
     else
-        touch ${NOTES_LOCATION}/$1${DEFAULT_EXTENSION}
-        nano ${NOTES_LOCATION}/$1${DEFAULT_EXTENSION}
+        touch ${NOTES_LOCATION}/$1${DEFAULT_EXTENSION} && log INFO "Note created" "Succesfully created $1"
+        ${DEFAULT_EDITOR} ${NOTES_LOCATION}/$1${DEFAULT_EXTENSION}
     fi
 }
 
 delete() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
-        prompt "Are you sure you want to delete this note?" "Note deleted: $1${DEFAULT_EXTENSION} succesfully deleted" "" && rm ${NOTES_LOCATION}/$(get_note_path $1)
+        prompt "Are you sure you want to delete this note?" "" "" && rm ${NOTES_LOCATION}/$(get_note_path $1) && log INFO "Note deleted" "Succesfully deleted $1"
     else
-        echo "Unable to delete: The given note doesn't exist"
+        log ERROR "Unable to delete" "The given note doesn't exist"
     fi
 }
 
@@ -131,7 +149,7 @@ edit() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
         ${DEFAULT_EDITOR} ${NOTES_LOCATION}/$(get_note_path $1)
     else
-        echo "Unable to open: The given note doesn't exist"
+        log ERROR "Unable to open" "The given note doesn't exist"
     fi
 }
 
@@ -139,12 +157,12 @@ info() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
         echo "Name: $1.${DEFAULT_EXTENSION}"
     else
-        echo "Unable to display info: The given note doesn't exist"
+        log ERROR "Unable to display info" "The given note doesn't exist"
     fi
 }
 
 list() {
-    echo "untagged/"
+    echo "Untagged Notes/"
     shopt -s nullglob
     for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
         local pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
@@ -168,14 +186,14 @@ search() {
 tag() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
         if [[ "${TAGS[*]}" == *"$2"* ]]; then
-            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/$2/
+            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/$2/ && log INFO "Note tagged" "Succesfully tagges $1 as $2"
         else
             mkdir ${NOTES_LOCATION}/$2
             TAGS+=("$2")
-            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/$2/
+            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/$2/ && log INFO "Note tagged" "Succesfully tagges $1 as $2"
         fi
     else
-        echo "Unable to tag: The given note doesn't exist"
+        log ERROR "Unable to tag" "The given note doesn't exist"
     fi
 }
 
@@ -183,10 +201,10 @@ untag() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
         local note=${NOTES_LOCATION}/$(get_note_path $1)
         if [ ${note/"$1${DEFAULT_EXTENSION}"/""} != ${NOTES_LOCATION}/ ]; then
-            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/
+            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/ && log INFO "Note untagged" "Succesfully untagged $1"
         fi
     else
-        echo "Unable to untag: The given note doesn't exist"
+        log ERROR "Unable to untag" "The given note doesn't exist"
     fi
 }
 
