@@ -47,12 +47,14 @@ if ! [[ -d ${BASE_LOCATION} ]]; then
 fi
 
 # fill the tags array
-for dir in ${NOTES_LOCATION}/*/; do
-    dir=${dir%*/}
-    if [ -z "$(ls -A $dir)" ]; then
-        rm -rf $dir
-    fi
-done
+if ! [ -z "$(ls -A ${NOTES_LOCATION})" ]; then
+    for dir in ${NOTES_LOCATION}/*/; do
+        dir=${dir%*/}
+        if [ -z "$(ls -A $dir)" ]; then
+            rm -rf $dir
+        fi
+    done
+fi
 shopt -s nullglob
 for dir in ${NOTES_LOCATION}/*/; do
     dir=${dir%*/}   # remove the trailing "/"
@@ -111,19 +113,19 @@ get_note_path() {
 
 # -- MAIN FUNCTIONS --
 help() {
-    echo \
-    "BashNotes v0.1
+    echo -e \
+    ${GREEN}"BashNotes v0.1
 BashNotes is a simple bash script for managing notes
-
-bnotes help                        : Shows the help menu for BashNotes
-bnotes create <note_name>          : Creates a note with the given name and opens it in the default editor
-bnotes delete <note_name>          : Deletes the note with the given name
-bnotes edit <note_name>            : Opens the note with the given name in the default editor
-bnotes list <tag>                  : Lists all notes that belong to the given tag (lists all notes if no tag name is given)
-bnotes search <search>             : Searches for the given search term in note names
-bnotes tag <note_name> <tag_name>  : Assigns the given tag to the given note
-bnotes untag <note_name>           : Removes the current tag from the given note
-bnotes taglist                     : Lists all tags"
+${BLUE}
+ · bnotes help                        : ${GREEN}Shows the help menu for BashNotes${BLUE}
+ · bnotes create <note_name>          : ${GREEN}Creates a note with the given name and opens it in the default editor${BLUE}
+ · bnotes delete <note_name>          : ${GREEN}Deletes the note with the given name${BLUE}
+ · bnotes edit <note_name>            : ${GREEN}Opens the note with the given name in the default editor${BLUE}
+ · bnotes list <tag>                  : ${GREEN}Lists all notes that belong to the given tag (lists all notes if no tag name is given)${BLUE}
+ · bnotes search <search>             : ${GREEN}Searches for the given search term in note names${BLUE}
+ · bnotes tag <note_name> <tag_name>  : ${GREEN}Assigns the given tag to the given note${BLUE}
+ · bnotes untag <note_name>           : ${GREEN}Removes the current tag from the given note${BLUE}
+ · bnotes taglist                     : ${GREEN}Lists all tags"${RESET}
 }
 
 create() {
@@ -181,20 +183,24 @@ info() {
 }
 
 list() {
-    echo "Untagged Notes/"
     shopt -s nullglob
-    for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
-        local pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
-        echo "  $pure_filename1"
-    done
-    for dir in ${NOTES_LOCATION}/*/; do
-        local pure_dirname=${dir/"$NOTES_LOCATION/"/""}
-        echo $pure_dirname
-        for file in $dir*${DEFAULT_EXTENSION}; do
-            local pure_filename2=${file/"$dir"/""}    # remove the base dir path
-            echo "  $pure_filename2"
+    if [ -z "$(ls -A ${NOTES_LOCATION})" ]; then
+        log INFO "Folder empty" "You don't have any notes! Use the create option to create a new note"
+    else
+        echo "Untagged Notes/"
+        for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
+            local pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
+            echo "  $pure_filename1"
         done
-    done
+        for dir in ${NOTES_LOCATION}/*/; do
+            local pure_dirname=${dir/"$NOTES_LOCATION/"/""}
+            echo $pure_dirname
+            for file in $dir*${DEFAULT_EXTENSION}; do
+                local pure_filename2=${file/"$dir"/""}    # remove the base dir path
+                echo "  $pure_filename2"
+            done
+        done
+    fi
     shopt -u nullglob
 }
 
@@ -257,6 +263,6 @@ case "$1" in
         untag $2
         ;;
     *)
-        echo "BashNotes: Option not found"
+        log ERROR "BashNotes" "Option not found"
         ;;
 esac

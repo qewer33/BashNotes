@@ -6,5 +6,5 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 chmod u+x bashnotes
-sudo mv bashnotes /usr/bin/
+sudo cp bashnotes /usr/bin/
 echo "BashNotes is succesfully installed"
