@@ -23,7 +23,7 @@
 # - CONFIG PREFERENCES -
 BASE_LOCATION=~/.config/BashNotes
 NOTES_LOCATION=${BASE_LOCATION}/notes
-DEFAULT_EDITOR=micro
+DEFAULT_EDITOR=nano
 DEFAULT_EXTENSION=.md
 # - END CONFIG PREFERENCES -
 
@@ -110,6 +110,11 @@ get_note_path() {
     done
 }
 
+get_note_tag() {
+    local file=$(get_note_path $1)
+    echo ${file/"/$1${DEFAULT_EXTENSION}"/""}
+}
+
 
 # -- MAIN FUNCTIONS --
 help() {
@@ -187,17 +192,17 @@ list() {
     if [ -z "$(ls -A ${NOTES_LOCATION})" ]; then
         log INFO "Folder empty" "You don't have any notes! Use the create option to create a new note"
     else
-        echo "Untagged Notes/"
+        echo -e ${GREEN}"Untagged Notes/"${RESETC}
         for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
             local pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
-            echo "  $pure_filename1"
+            echo -e ${BLUE}"  $pure_filename1"${RESETC}
         done
         for dir in ${NOTES_LOCATION}/*/; do
             local pure_dirname=${dir/"$NOTES_LOCATION/"/""}
-            echo $pure_dirname
+            echo -e ${GREEN}"$pure_dirname"${RESETC}
             for file in $dir*${DEFAULT_EXTENSION}; do
                 local pure_filename2=${file/"$dir"/""}    # remove the base dir path
-                echo "  $pure_filename2"
+                echo -e ${BLUE}"  $pure_filename2"${RESETC}
             done
         done
     fi

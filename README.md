@@ -3,6 +3,7 @@
 BashNotes is a simple bash script for managing notes. It allows you to manage your notes in tags (categories) all from your terminal. It is currently not yet finished, still needs some improvements and code cleanup but it mainly works.
 
 ### Workflow
+Here is an example of the workflow using BashNotes with the default editor set to `micro`.
 ![workflow](https://raw.githubusercontent.com/qewer33/BashNotes/main/assets/demovid.gif)
 
 ### Installation
