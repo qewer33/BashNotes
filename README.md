@@ -11,6 +11,10 @@ Download `bashnotes` and `install.sh` (make sure they are on the same directory)
 ```
 sudo sh install.sh
 ```
+Or you just run this command which installs `install.sh` with `wget` and runs it:
+```
+sudo wget -O - https://raw.githubusercontent.com/qewer33/BashNotes/main/install.sh | sudo sh
+```
 
 ### All Options
 ```
