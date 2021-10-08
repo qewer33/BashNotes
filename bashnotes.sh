@@ -32,11 +32,11 @@ NOTES=()
 TAGS=()
 
 # - COLOR VARIABLES -
-RED="\e[0;91m"
-BLUE="\e[0;94m"
-GREEN="\e[0;92m"
-WHITE="\e[0;97m"
-RESETC="\e[0m"
+RED="\033[0;31m"
+BLUE="\033[0;34m"
+GREEN="\033[0;32m"
+YELLOW='\033[0;33m'
+RESETC="\033[0m"
 
 
 # -- INITIALIZE --
@@ -50,27 +50,27 @@ fi
 if ! [ -z "$(ls -A ${NOTES_LOCATION})" ]; then
     for dir in ${NOTES_LOCATION}/*/; do
         dir=${dir%*/}
-        if [ -z "$(ls -A $dir)" ]; then
-            rm -rf $dir
+        if [ -z "$(ls -A ${dir})" ]; then
+            rm -rf ${dir}
         fi
     done
 fi
 shopt -s nullglob
 for dir in ${NOTES_LOCATION}/*/; do
     dir=${dir%*/}   # remove the trailing "/"
-    pure_tag_name=${dir/"$NOTES_LOCATION/"/""}    # remove the base dir path
-    TAGS+=("$pure_tag_name")
+    pure_tag_name=${dir/"${NOTES_LOCATION}/"/""}    # remove the base dir path
+    TAGS+=("${pure_tag_name}")
 done
 
 # fill the notes array
 for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
-    pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
-    NOTES+=("$pure_filename1")
+    pure_filename1=${file/"${NOTES_LOCATION}/"/""}    # remove the base dir path
+    NOTES+=("${pure_filename1}")
 done
 for dir in ${NOTES_LOCATION}/*/; do
     for file in $dir*${DEFAULT_EXTENSION}; do
-        pure_filename2=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
-        NOTES+=("$pure_filename2")
+        pure_filename2=${file/"${NOTES_LOCATION}/"/""}    # remove the base dir path
+        NOTES+=("${pure_filename2}")
     done
 done
 shopt -u nullglob
@@ -79,16 +79,18 @@ shopt -u nullglob
 # -- UTIL FUNCTIONS --
 log() {
     local color
-    if [ "$1" == "INFO" ]; then color=$GREEN
-    elif [ "$1" == "ERROR" ]; then color=$RED
+    if [[ "$1" = "INFO" ]]; then color=${GREEN}
+    elif [[ "$1" = "WARN" ]]; then color=${YELLOW}
+    elif [[ "$1" = "ERROR" ]]; then color=${RED}
     fi
     echo -e ${color}"$2: $3."${RESETC}
 }
 
 prompt() {
     while true; do
-        read -p "$1 [y/n]: " yn
-        case $yn in
+        echo -e "${YELLOW}$1 [y/n]: ${RESET}"
+        read yn
+        case ${yn} in
             [Yy]*) echo "$2" ; return 0 ;;
             [Nn]*) echo "$3" ; return  1 ;;
         esac
@@ -97,14 +99,14 @@ prompt() {
 
 get_note_path() {
     for note in ${NOTES[@]}; do
-            if [[ $note == */* ]]; then
-            IFS='/' read -ra arr <<< "$note"
-            if [ ${arr[1]} == $1${DEFAULT_EXTENSION} ]; then
-                echo $note
+            if [[ ${note} == */* ]]; then
+            IFS='/' read -ra arr <<< "${note}"
+            if [ "${arr[1]}" == "$1${DEFAULT_EXTENSION}" ]; then
+                echo ${note}
             fi
         else
-            if [ $note == $1${DEFAULT_EXTENSION} ]; then
-                echo $note
+            if [ "${note}" == "$1${DEFAULT_EXTENSION}" ]; then
+                echo ${note}
             fi
         fi
     done
@@ -167,7 +169,7 @@ info() {
         echo -e ${GREEN}"Tag: ${file/"/$1${DEFAULT_EXTENSION}"/""}"
 
         local stats=$(stat ${NOTES_LOCATION}/$(get_note_path $1))
-        readarray -t stats <<<"$stats"
+        readarray -t stats <<<"${stats}"
 
         local created=${stats[7]/"Birth: "/""}
         IFS='.' read -ra created <<< "${created}"
@@ -195,14 +197,14 @@ list() {
         echo -e ${GREEN}"Untagged Notes/"${RESETC}
         for file in ${NOTES_LOCATION}/*${DEFAULT_EXTENSION}; do
             local pure_filename1=${file/"$NOTES_LOCATION/"/""}    # remove the base dir path
-            echo -e ${BLUE}"  $pure_filename1"${RESETC}
+            echo -e ${BLUE}"  ${pure_filename1}"${RESETC}
         done
         for dir in ${NOTES_LOCATION}/*/; do
             local pure_dirname=${dir/"$NOTES_LOCATION/"/""}
             echo -e ${GREEN}"$pure_dirname"${RESETC}
             for file in $dir*${DEFAULT_EXTENSION}; do
                 local pure_filename2=${file/"$dir"/""}    # remove the base dir path
-                echo -e ${BLUE}"  $pure_filename2"${RESETC}
+                echo -e ${BLUE}"  ${pure_filename2}"${RESETC}
             done
         done
     fi

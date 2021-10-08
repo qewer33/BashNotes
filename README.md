@@ -4,6 +4,7 @@ BashNotes is a simple bash script for managing notes. It allows you to manage yo
 
 ### Workflow
 Here is an example of the workflow using BashNotes with the default editor set to `micro`.
+
 ![workflow](https://raw.githubusercontent.com/qewer33/BashNotes/main/assets/demovid.gif)
 
 ### Installation
@@ -11,7 +12,7 @@ Download `bashnotes` and `install.sh` (make sure they are on the same directory)
 ```
 sudo sh install.sh
 ```
-Or you just run this command which installs `install.sh` with `wget` and runs it:
+Or you can just run this command which installs `install.sh` with `wget` and runs it:
 ```
 sudo wget -O - https://raw.githubusercontent.com/qewer33/BashNotes/main/install.sh | sudo sh
 ```
