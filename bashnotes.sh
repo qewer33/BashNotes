@@ -47,11 +47,11 @@ if ! [[ -d ${BASE_LOCATION} ]]; then
 fi
 
 # fill the tags array
-if ! [ -z "$(ls -A ${NOTES_LOCATION})" ]; then
+if ! [ -z $(ls -A ${NOTES_LOCATION}) ]; then
     for dir in ${NOTES_LOCATION}/*/; do
         dir=${dir%*/}
         if [ -z "$(ls -A ${dir})" ]; then
-            rm -rf ${dir}
+            rm -rf "${dir}"
         fi
     done
 fi
@@ -83,13 +83,13 @@ log() {
     elif [[ "$1" = "WARN" ]]; then color=${YELLOW}
     elif [[ "$1" = "ERROR" ]]; then color=${RED}
     fi
-    echo -e ${color}"$2: $3."${RESETC}
+    echo -e "${color}$2: $3.${RESETC}"
 }
 
 prompt() {
     while true; do
-        echo -e "${YELLOW}$1 [y/n]: ${RESET}"
-        read yn
+        echo -e "${YELLOW}$1 [y/n]: ${RESETC}"
+        read -r yn
         case ${yn} in
             [Yy]*) echo "$2" ; return 0 ;;
             [Nn]*) echo "$3" ; return  1 ;;
@@ -102,18 +102,19 @@ get_note_path() {
             if [[ ${note} == */* ]]; then
             IFS='/' read -ra arr <<< "${note}"
             if [ "${arr[1]}" == "$1${DEFAULT_EXTENSION}" ]; then
-                echo ${note}
+                echo "${note}"
             fi
         else
             if [ "${note}" == "$1${DEFAULT_EXTENSION}" ]; then
-                echo ${note}
+                echo "${note}"
             fi
         fi
     done
 }
 
 get_note_tag() {
-    local file=$(get_note_path $1)
+    local file
+    file=$(get_note_path $1)
     echo ${file/"/$1${DEFAULT_EXTENSION}"/""}
 }
 
@@ -233,7 +234,7 @@ untag() {
     if [[ "${NOTES[*]}" == *"$(get_note_path $1)"* ]]; then
         local note=${NOTES_LOCATION}/$(get_note_path $1)
         if [ ${note/"$1${DEFAULT_EXTENSION}"/""} != ${NOTES_LOCATION}/ ]; then
-            mv ${NOTES_LOCATION}/$(get_note_path $1) ${NOTES_LOCATION}/ && log INFO "Note untagged" "Succesfully untagged $1"
+            mv "${NOTES_LOCATION}/$(get_note_path $1)" "${NOTES_LOCATION}/" && log INFO "Note untagged" "Succesfully untagged $1"
         fi
     else
         log ERROR "Unable to untag" "The given note doesn't exist"
